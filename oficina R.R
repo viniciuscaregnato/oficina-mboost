@@ -10,7 +10,7 @@ f_boost_simple <- function(
   require(mboost)
   
   x <- as.matrix(x)
- 
+  
   ## definindo a regressao ## 
   reg_opt <- glmboost(
     y = as.vector(y),
@@ -24,7 +24,7 @@ f_boost_simple <- function(
   )
   
   ## avaliando a regressao ##
-  aic <- AIC(reg_opt, method = "corrected")
+  aic <- AIC(reg_opt, method = "corrected")       # o método AICc avalia a eficiencia, como o R² ajustado
   aic_seq <- attributes(aic)$AIC
   m_opt <- min(
     c(
@@ -63,42 +63,42 @@ View(data)
 
 # dependent variable: `CPIAUCSL`
 
-row.names(data) <- data$date #colocou as datas da coluna date como nome das linhas
+row.names(data) <- data$date                 #colocou as datas, da coluna date, como nome das linhas
 
-data_1 <- select(data, -"date") #exclue coluna data
+data_1 <- select(data, -"date")              #exclue coluna data
 View(data_1)
 
-data_2 <- cbind( # aqui ele combina o data_1 com os 4 principais componentes, definidos pelo PCA sobre os dados normalizados
+data_2 <- cbind(                             # aqui ele combina o data_1(normalizados com sacale()) com os 4 principais componentes (definidos pelo PCA)
   data_1,
   factors = princomp(scale(data_1))$scores[, 1:4]
 )
 View(data_2)
-colnames(data_2) # as 4 colunas factors.Comp._ sao os componentes adicionados
+colnames(data_2)                             # as 4 colunas factors.Comp._ sao os componentes adicionados
 
 
 dados_cpi <- data_2$CPIAUCSL
 
-tempo <- seq(                # apenas define os parametros do grafico
+tempo <- seq(                                # apenas define os parametros do grafico
   from = as.Date(row.names(data)[1]),
   to = as.Date(tail(row.names(data), 1)),
   by = "months"
 )
-plot(tempo, dados_cpi, type = "l") #observamos a variação de CPIAUCSL no tempo
+plot(tempo, dados_cpi, type = "l")           #observamos a variação de CPIAUCSL no tempo
 
-dados_y <- data.frame(y = dados_cpi) #cria um data frame com os valores de dados_cpi na coluna "y"
-dados_x <- select(data_2, -"CPIAUCSL") #data frame de data_2 sem o CPIAUCSL
+dados_y <- data.frame(y = dados_cpi)         #cria um data frame com os valores de dados_cpi na coluna "y"
+dados_x <- select(data_2, -"CPIAUCSL")       #data frame de data_2 sem o CPIAUCSL
 y_vec <- dados_y$y 
 
-dim(dados_x) #dimensao dos dados dos regressores
+dim(dados_x)                                 #dimensao dos dados dos regressores
 
 #### SERAO CRIADAS FUNÇÕES PARA INCLUIR AS DEFASAGENS DAS VAR. IND E DEPENDENTES ####
 
-f_add_lags_aux <- function(  # a função apenas criar os lags desejados
-    x, # vetor com os valores numéricos
-    lag_max, # lag máx. desejado
-    name # nome a ser colocado no vetor resultante
+f_add_lags_aux <- function(                  # a função apenas criar os lags desejados
+  x,                                         # vetor com os valores numéricos
+  lag_max,                                   # lag máx. desejado
+  name                                       # nome a ser colocado no vetor resultante
 ) {
-  result <- embed(x, lag_max) %>% data.frame()
+  result <- embed(x, lag_max) %>% data.frame()  # embed() cria uma matriz com as lags
   colnames(result) <- c(
     paste(name, "_t_", 1:lag_max, sep = "")
   )
@@ -107,8 +107,8 @@ f_add_lags_aux <- function(  # a função apenas criar os lags desejados
 }
 
 f_add_lags <- function(
-    x, # data.frame com colunas nomeadas
-    lag_max # lag máx. desejado
+    x,                                        # data.frame com colunas nomeadas
+    lag_max                                   # lag máx. desejado
 ) {
   
   if (!is.data.frame(x)) {
